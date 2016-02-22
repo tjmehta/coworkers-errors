@@ -1,0 +1,57 @@
+{
+  "name": "coworkers-errors",
+  "version": "0.0.0",
+  "description": "Errors and errorHandler useful for \"coworkers\" applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "lab --verbose --assert code --threshold 100"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tjmehta/coworkers-errors.git"
+  },
+  "keywords": [
+    "coworkers",
+    "error",
+    "errors",
+    "handler",
+    "custom",
+    "retry",
+    "fatal",
+    "reject",
+    "ack",
+    "nack",
+    "rabbitmq",
+    "rabbit"
+  ],
+  "author": "Tejesh Mehta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tjmehta/coworkers-errors/issues"
+  },
+  "homepage": "https://github.com/tjmehta/coworkers-errors#readme",
+  "dependencies": {
+    "101": "^1.2.0",
+    "assert-args": "^1.0.5",
+    "co": "^4.6.0",
+    "direct-instance-of": "^2.0.0",
+    "is-positive-integer": "^1.0.0",
+    "memoizee": "^0.3.9",
+    "native-types": "^1.0.0",
+    "object-loops": "^0.5.1",
+    "throw-next-tick": "^0.1.0",
+    "utils-error-to-json": "^1.0.0",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "code": "^2.1.0",
+    "lab": "^8.2.0",
+    "proxyquire": "^1.7.4",
+    "sinon": "^1.17.3",
+    "sinon-as-promised": "^4.0.0",
+    "standard": "^6.0.5"
+  },
+  "peerDependencies": {
+    "coworkers": "^0.5.0"
+  }
+}
