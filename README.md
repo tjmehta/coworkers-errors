@@ -1,4 +1,4 @@
-# coworkers-errors
+# coworkers-errors [![Build Status](https://travis-ci.org/tjmehta/coworkers-errors.svg?branch=master)](https://travis-ci.org/tjmehta/coworkers-errors)
 Errors and errorHandler useful for "coworkers" applications
 
 # Installation
