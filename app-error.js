@@ -2,9 +2,7 @@
 
 const assert = require('assert')
 
-const assign = require('101/assign')
 const errToJSON = require('utils-error-to-json')
-const isObject = require('101/is-object')
 const put = require('101/put')
 const uuid = require('uuid')
 
