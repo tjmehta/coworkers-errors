@@ -2,6 +2,7 @@
 
 const assert = require('assert')
 
+const assertArgs = require('assert-args')
 const co = require('co')
 const defaults = require('101/defaults')
 const hasProps = require('101/has-properties')
@@ -52,6 +53,39 @@ function createErrorHandler (opts) {
     multiplier: 4,
     maxInterval: 16 * 1000,
     maxAttempts: Infinity
+  })
+  assertArgs([opts], {
+    opts: 'object'
+  })
+  assertArgs([
+    opts.log,
+    opts.namespaces,
+    opts.retry
+  ], {
+    'opts.log': '*',
+    'opts.namespaces': 'object',
+    'opts.retry': 'object'
+  })
+  assertArgs([
+    opts.log.error,
+    opts.namespaces.delimeter,
+    opts.namespaces.fatal,
+    opts.namespaces.permanent,
+    opts.namespaces.retryable,
+    opts.retry.startInterval,
+    opts.retry.multiplier,
+    opts.retry.maxInterval,
+    opts.retry.maxAttempts
+  ], {
+    'opts.log.error': '*',
+    'opts.namespaces.delimeter': 'string',
+    'opts.namespaces.fatal': 'string',
+    'opts.namespaces.permanent': 'string',
+    'opts.namespaces.retryable': 'string',
+    'opts.retry.startInterval': 'number',
+    'opts.retry.multiplier': 'number',
+    'opts.retry.maxInterval': 'number',
+    'opts.retry.maxAttempts': 'number'
   })
   // validate opts
   const retryOpts = opts.retry
