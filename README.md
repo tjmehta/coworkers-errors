@@ -23,7 +23,7 @@ const err = new PermanentError('boom', data)
 // wrap an error
 const wrapped = PermanentError.wrap(new Error('boom'), data)
 
-// wrap and immediately throw and error
+// wrap and immediately throw the error
 PermanentError.throw(new Error('boom'), data)
 ```
 
@@ -42,7 +42,7 @@ const err = new RetryableError('boom', data)
 // wrap an error
 const wrapped = RetryableError.wrap(new Error('boom'), data)
 
-// wrap and immediately throw and error
+// wrap and immediately throw the error
 RetryableError.throw(new Error('boom'), data)
 ```
 
@@ -61,8 +61,12 @@ const err = new FatalError('boom', data)
 // wrap an error
 const wrapped = FatalError.wrap(new Error('boom'), data)
 
-// wrap and immediately throw and error
+// wrap and immediately throw the error
 FatalError.throw(new Error('boom'), data)
+
+// FatalError have this additional method:
+// wrap and immediately next tick throw the error
+FatalError.throwNextTick(new Error('boom'), data)
 ```
 
 ### AppError
