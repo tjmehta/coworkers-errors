@@ -141,6 +141,21 @@ It can also be fully customized w/ options; checkout "Error-handler options" bel
     * `maxAttempts` - max number of attempts to retry, default: Infinity
   * `finally` - allows final behavior before error is published the dead-letter-exchange (good place for cleanup, or replying to repc)
     * example below
+    * 
+
+##### Error-handler using defaults:
+```js
+const coworkers = require('coworkers')
+const errorHandler = require('coworkers-errors/error-handler')
+const PermanentError = require('coworkers-errors/permanent-error')
+const log = require('./log.js')
+
+const app = coworkers()
+
+app.queue('some-queue', ...)
+
+app.on('error', errorHandler())
+```
 
 ##### Error-handler w/ options example:
 ```js
@@ -162,7 +177,6 @@ app.on('error', errorHandler({
     maxAttempts: 100
   },
   routingKeys: {
-    delimeter: '.',
     permanent: 'permanent-error'
     fatal: 'fatal-error'
     retryable: 'retryable-error'
@@ -176,6 +190,7 @@ app.on('error', errorHandler({
     }
   }
 }))
+```
 
 # License
 MIT
