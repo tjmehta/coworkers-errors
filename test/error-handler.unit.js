@@ -27,8 +27,7 @@ const silentLog = {
 }
 const mockChannel = function () {
   return {
-    assertQueue: sinon.stub(),
-    sendToQueue: sinon.stub(),
+    publish: sinon.stub(),
     ack: sinon.stub()
   }
 }
@@ -182,6 +181,9 @@ describe('createErrorHandler', function () {
       // mock context
       ctx.contextJSON = {}
       ctx.context = {
+        queueOpts: {
+          deadLetterExchange: 'dead-letter-exchange'
+        },
         publisherChannel: mockChannel(),
         consumerChannel: mockChannel(),
         toJSON: sinon.stub().returns(ctx.contextJSON),
@@ -193,12 +195,12 @@ describe('createErrorHandler', function () {
         headers: {}
       }
       ctx.opts = {
-        namespaces: {
-          delimeter: '.',
+        routingKeys: {
           fatal: 'fatal-error',
           permanent: 'permanent-error',
           retryable: 'retryable-error'
-        }
+        },
+        finally: sinon.stub()
       }
       done()
     })
@@ -208,16 +210,16 @@ describe('createErrorHandler', function () {
         const err = new FatalError('boom')
         const errJSON = err.toJSON()
         const publisherChannel = ctx.context.publisherChannel
-        publisherChannel.assertQueue.resolves()
         ctx.handlers.fatalErrorHandler(err, ctx.context, ctx.opts)
           .then(function () {
-            sinon.assert.calledOnce(publisherChannel.assertQueue)
-            sinon.assert.calledWith(publisherChannel.assertQueue, 'fatal-error.queue')
-            sinon.assert.calledOnce(publisherChannel.sendToQueue)
-            sinon.assert.calledWith(publisherChannel.sendToQueue, 'fatal-error.queue', {
-              err: errJSON,
-              context: ctx.context.toJSON()
-            })
+            sinon.assert.calledOnce(ctx.opts.finally)
+            sinon.assert.calledWith(ctx.opts.finally, err, ctx.context)
+            sinon.assert.calledOnce(publisherChannel.publish)
+            sinon.assert.calledWith(publisherChannel.publish,
+              'dead-letter-exchange', 'fatal-error', {
+                err: errJSON,
+                context: ctx.context.toJSON()
+              })
             sinon.assert.calledOnce(ctx.throwNextTick)
             const fatalErr = ctx.throwNextTick.args[0][0]
             expect(fatalErr).to.be.an.instanceOf(FatalError)
@@ -248,16 +250,14 @@ describe('createErrorHandler', function () {
         const errJSON = err.toJSON()
         const publisherChannel = ctx.context.publisherChannel
         const consumerChannel = ctx.context.consumerChannel
-        publisherChannel.assertQueue.resolves()
         ctx.handlers.permanentErrorHandler(err, ctx.context, ctx.opts)
           .then(function () {
-            sinon.assert.calledOnce(publisherChannel.assertQueue)
-            sinon.assert.calledWith(publisherChannel.assertQueue, 'permanent-error.queue')
-            sinon.assert.calledOnce(publisherChannel.sendToQueue)
-            sinon.assert.calledWith(publisherChannel.sendToQueue, 'permanent-error.queue', {
-              err: errJSON,
-              context: ctx.context.toJSON()
-            })
+            sinon.assert.calledOnce(publisherChannel.publish)
+            sinon.assert.calledWith(publisherChannel.publish,
+              'dead-letter-exchange', 'permanent-error', {
+                err: errJSON,
+                context: ctx.context.toJSON()
+              })
             sinon.assert.calledOnce(consumerChannel.ack)
             sinon.assert.calledWith(consumerChannel.ack, ctx.context.message)
             done()
@@ -347,7 +347,6 @@ describe('createErrorHandler', function () {
           maxAttempts: Infinity
         }
         const publisherChannel = ctx.context.publisherChannel
-        publisherChannel.assertQueue.resolves()
         const retryTimeout = 100
         ctx.getRetryTimeout.returns(retryTimeout)
         ctx.getMaxIntervalAttempt.returns(100)
@@ -360,9 +359,6 @@ describe('createErrorHandler', function () {
             sinon.assert.calledWith(ctx.getRetryTimeout, ctx.opts.retry)
             sinon.assert.calledOnce(ctx.getMaxIntervalAttempt)
             sinon.assert.calledWith(ctx.getMaxIntervalAttempt, ctx.opts.retry)
-            sinon.assert.calledOnce(publisherChannel.assertQueue)
-            sinon.assert.calledWith(publisherChannel.assertQueue, 'retryable-error.queue')
-            sinon.assert.calledOnce(publisherChannel.sendToQueue)
             const expectedProps = {
               headers: {
                 'x-death': [{
@@ -382,8 +378,9 @@ describe('createErrorHandler', function () {
               },
               expiration: retryTimeout
             }
-            sinon.assert.calledWith(publisherChannel.sendToQueue,
-              'retryable-error.queue', ctx.context.content, expectedProps)
+            sinon.assert.calledOnce(publisherChannel.publish)
+            sinon.assert.calledWith(publisherChannel.publish,
+              'dead-letter-exchange', 'retryable-error', ctx.context.content, expectedProps)
             done()
           })
           .catch(done)
@@ -404,8 +401,6 @@ describe('createErrorHandler', function () {
               maxInterval: 100,
               maxAttempts: -1
             }
-            const publisherChannel = ctx.context.publisherChannel
-            publisherChannel.assertQueue.resolves()
             const retryTimeout = 100
             ctx.getRetryTimeout.returns(retryTimeout)
             ctx.getMaxIntervalAttempt.returns(100)
@@ -432,7 +427,6 @@ describe('createErrorHandler', function () {
             ctx.getMaxIntervalAttempt.returns(2)
             ctx.time = 1455916680303
             sinon.stub(Date, 'now').returns(ctx.time)
-            publisherChannel.assertQueue.resolves()
             const err = new RetryableError('boom')
             ctx.opts.retry = {
               startInterval: 10,
@@ -462,9 +456,6 @@ describe('createErrorHandler', function () {
                 sinon.assert.notCalled(ctx.getRetryTimeout)
                 sinon.assert.calledOnce(ctx.getMaxIntervalAttempt)
                 sinon.assert.calledWith(ctx.getMaxIntervalAttempt, ctx.opts.retry)
-                sinon.assert.calledOnce(publisherChannel.assertQueue)
-                sinon.assert.calledWith(publisherChannel.assertQueue, 'retryable-error.queue')
-                sinon.assert.calledOnce(publisherChannel.sendToQueue)
                 const expectedProps = {
                   headers: {
                     CC: ctx.context.headers.CC,
@@ -485,8 +476,9 @@ describe('createErrorHandler', function () {
                   },
                   expiration: retryTimeout
                 }
-                sinon.assert.calledWith(publisherChannel.sendToQueue,
-                  'retryable-error.queue', ctx.context.content, expectedProps)
+                sinon.assert.calledOnce(publisherChannel.publish)
+                sinon.assert.calledWith(publisherChannel.publish,
+                  'dead-letter-exchange', 'retryable-error', ctx.context.content, expectedProps)
                 done()
               })
               .catch(done)
@@ -519,9 +511,8 @@ describe('createErrorHandler', function () {
 
   function assertFatalError (errorHandler, done) {
     const err = new FatalError('fatal')
-    const publisherChannel = ctx.context.publisherChannel
     const assertErr = new Error('assert failed')
-    publisherChannel.assertQueue.rejects(assertErr)
+    ctx.opts.finally.throws(assertErr)
     errorHandler(err, ctx.context, ctx.opts)
       .then(function () {
         sinon.assert.calledOnce(FatalError.throwNextTick)

@@ -117,10 +117,15 @@ It can also be fully customized w/ options; checkout "Error-handler options" bel
 * Unexpected errors are wrapped as retryable errors and handled by retryableErrorHandler.
 * Once the error is published to the retryable-error queue and acked, the error wrapped as a FatalError and next-tick thrown as an uncaught-exception to crash the process.
 
-##### Note on timeout errors
-* Users of coworkers-errors should also make sure to set timeouts and dead-letters-exchange for all of their queues.
-* A reliable default behavior for timeout dead-letters, is to route them to the retryable-error queue.
-* If you want to retry timeout errors w/ additional timeout, specify
+##### Note on dead-letter-exchange and queue options
+* Make sure to set timeouts and dead-letters-exchange for all coworkers queues when using error-handler.
+* PermanentErrorDeadLetterQueue should be bound to the dlx w/ routingPattern "permanent-error"
+* FatalErrorDeadLetterQueue should be bound to the dlx w/ routingPattern "fatal-error"
+* RetryableErrorDeadLetterQueue should be bound to the dlx w/ routingPattern "#"
+* Timedout (queue-message-ttl or per-message-ttl) message will end up in the RetryableErrorDeadLetterQueue
+  * Timedout messages will not be retried w/ backoff (as they are handled completely w/in rabbitmq)
+  * RetryableErrorDeadLetterQueue should also have a timeout so that timedout messages are retried
+* If you need timedout messages to be handled w/ backoff, do not rely on rabbitmq's timeout, and handle timeouts w/in the coworkers app via middleware (throw a RetryableError)
 
 ##### Error-handler options
   * `log` - specify your own logger, must have `log.error`
@@ -134,11 +139,14 @@ It can also be fully customized w/ options; checkout "Error-handler options" bel
     * `multiplier` - factor to increase timeout by each attempt, default: 4
     * `maxInterval` - max timeout for retry in ms, default: 10000 (10s)
     * `maxAttempts` - max number of attempts to retry, default: Infinity
+  * `finally` - allows final behavior before error is published the dead-letter-exchange (good place for cleanup, or replying to repc)
+    * example below
 
 ##### Error-handler w/ options example:
 ```js
 const coworkers = require('coworkers')
 const errorHandler = require('coworkers-errors/error-handler')
+const PermanentError = require('coworkers-errors/permanent-error')
 const log = require('./log.js')
 
 const app = coworkers()
@@ -153,11 +161,19 @@ app.on('error', errorHandler({
     maxInterval: 10 * 1000
     maxAttempts: 100
   },
-  namespaces: {
+  routingKeys: {
     delimeter: '.',
     permanent: 'permanent-error'
     fatal: 'fatal-error'
     retryable: 'retryable-error'
+  },
+  finally: function (err, context) {
+    if (context.headers.replyTo && err instanceof PermanentError) {
+      context.reply({ error: err.toJSON() }) // reply w/ custom error format
+    }
+    if (context.dbConnection) {
+      dbConnection.close()
+    }
   }
 }))
 
