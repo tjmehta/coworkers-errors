@@ -90,7 +90,7 @@ const wrapped = CustomError.wrap(new Error('boom'), data)
 CustomError.throw(new Error('boom'), data)
 ```
 
-### ErrorHandler - Expirimental
+### ErrorHandler - Experimental
 Coworkers-errors offers a good default error-handler to use when using these errors.
 It can also be fully customized w/ options; checkout "Error-handler options" below.
 
