@@ -52,6 +52,6 @@
     "standard": "^6.0.5"
   },
   "peerDependencies": {
-    "coworkers": "^0.5.0"
+    "coworkers": ">=0.5.0"
   }
 }
