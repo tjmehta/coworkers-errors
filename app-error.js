@@ -3,7 +3,6 @@
 const assert = require('assert')
 
 const errToJSON = require('utils-error-to-json')
-const put = require('101/put')
 const uuid = require('uuid')
 
 const assertDeepNative = require('./lib/assert-deep-native.js')
@@ -54,9 +53,8 @@ module.exports = class AppError extends Error {
    */
   static wrap (err, data) {
     assert(isError(err), '"err" must be an Error')
-    data = data || {}
-    data = put(data, { err: err })
-    const newErr = new this(err.message, data)
+    const newData = Object.assign({}, err.data || {}, data || {}, { err: err })
+    const newErr = new this(err.message, newData)
     // adjust stack
     newErr.stack = newErr.stack.replace(/^([^\n]*\n)(.*wrap[^\n]+\n)/, '$1')
     return newErr
