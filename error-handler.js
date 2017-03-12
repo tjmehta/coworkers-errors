@@ -194,7 +194,7 @@ function retryableErrorHandler (err, context, opts) {
         headers: headers,
         expiration: retryCount >= maxIntervalAttempt
           ? retryOpts.maxInterval
-          : getRetryTimeout(retryOpts)
+          : getRetryTimeout(retryCount, retryOpts)
       }
       headers['x-death'].unshift({
         count: 1,

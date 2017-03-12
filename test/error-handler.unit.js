@@ -356,7 +356,7 @@ describe('createErrorHandler', function () {
           .then(function () {
             Date.now.restore()
             sinon.assert.calledOnce(ctx.getRetryTimeout)
-            sinon.assert.calledWith(ctx.getRetryTimeout, ctx.opts.retry)
+            sinon.assert.calledWith(ctx.getRetryTimeout, 1, ctx.opts.retry)
             sinon.assert.calledOnce(ctx.getMaxIntervalAttempt)
             sinon.assert.calledWith(ctx.getMaxIntervalAttempt, ctx.opts.retry)
             const expectedProps = {
