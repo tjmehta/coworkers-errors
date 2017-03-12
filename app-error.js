@@ -8,6 +8,7 @@ const uuid = require('uuid')
 
 const assertDeepNative = require('./lib/assert-deep-native.js')
 const dateNow = require('./lib/date-now.js') // for easier stubbing
+const isError = require('./lib/is-error.js')
 
 /**
  * AppErr - application error base class
@@ -40,7 +41,7 @@ module.exports = class AppError extends Error {
    * @throws {*Error} wrapped error
    */
   static throw (err, data) {
-    assert(err instanceof Error, '"err" must be an Error')
+    assert(isError(err), '"err" must be an Error')
     const newErr = this.wrap(err, data)
     // adjust stack
     newErr.stack = newErr.stack.replace(/^([^\n]*\n)(.*throw[^\n]+\n)/, '$1')
@@ -52,7 +53,7 @@ module.exports = class AppError extends Error {
    * @returns {*Error} wrapped error
    */
   static wrap (err, data) {
-    assert(err instanceof Error, '"err" must be an Error')
+    assert(isError(err), '"err" must be an Error')
     data = data || {}
     data = put(data, { err: err })
     const newErr = new this(err.message, data)
