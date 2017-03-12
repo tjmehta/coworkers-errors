@@ -4,10 +4,10 @@ const assert = require('assert')
 
 const assertArgs = require('assert-args')
 const co = require('co')
+const clone = require('101/clone')
 const defaults = require('101/defaults')
 const hasProps = require('101/has-properties')
 const noop = require('101/noop')
-const set = require('101/set')
 const isPositiveInteger = require('is-positive-integer')
 const throwNextTick = require('throw-next-tick')
 
@@ -177,7 +177,7 @@ module.exports.retryableErrorHandler = retryableErrorHandler
 function retryableErrorHandler (err, context, opts) {
   return co(function * () {
     const retryOpts = opts.retry
-    const headers = context.headers
+    const headers = clone(context.headers)
     headers['x-death'] = headers['x-death'] || []
     const retryCount = headers['x-death']
       .filter(hasProps({ // filter out any timeout deaths, retryable-queue and "this queue"
@@ -208,7 +208,7 @@ function retryableErrorHandler (err, context, opts) {
         },
         // non-standard
         err: err.toJSON(),
-        context: set(context.toJSON(), 'headers["x-death"]', '[Circular]')
+        context: context.toJSON()
       })
       opts.finally(err, context)
       context.publisherChannel.publish(deadLetterExchange, routingKey, context.content, props)
