@@ -1,6 +1,6 @@
 {
   "name": "coworkers-errors",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Errors and errorHandler useful for \"coworkers\" applications",
   "main": "index.js",
   "scripts": {
