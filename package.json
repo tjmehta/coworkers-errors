@@ -4,7 +4,7 @@
   "description": "Errors and errorHandler useful for \"coworkers\" applications",
   "main": "index.js",
   "scripts": {
-    "test": "lab --verbose --assert code --threshold 100"
+    "test": "lab --verbose --assert code --threshold 100 --ignore Reflect"
   },
   "repository": {
     "type": "git",
