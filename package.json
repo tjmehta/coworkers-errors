@@ -36,20 +36,20 @@
     "co": "^4.6.0",
     "direct-instance-of": "^2.0.0",
     "is-positive-integer": "^1.0.0",
-    "memoizee": "^0.3.9",
+    "memoizee": "^0.4.1",
     "native-types": "^1.0.0",
-    "object-loops": "^0.5.1",
+    "object-loops": "^0.8.0",
     "throw-next-tick": "^0.1.0",
     "utils-error-to-json": "^1.0.0",
-    "uuid": "^2.0.1"
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
-    "code": "^2.1.0",
-    "lab": "^8.2.0",
+    "code": "^4.0.0",
+    "lab": "^11.2.1",
     "proxyquire": "^1.7.4",
     "sinon": "^1.17.3",
     "sinon-as-promised": "^4.0.0",
-    "standard": "^6.0.5"
+    "standard": "^8.6.0"
   },
   "peerDependencies": {
     "coworkers": ">=0.5.0"
